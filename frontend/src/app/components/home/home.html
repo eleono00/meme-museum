@@ -1,0 +1,73 @@
+<div class="container" style="text-align: center; margin-top: 50px; font-family: sans-serif; padding-bottom: 50px;">
+  
+  <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+    <h1>🏛️ MUSEO DEI MEME 🏛️</h1>
+    
+    <div>
+      <button *ngIf="!isLoggedIn" routerLink="/login" style="margin-right: 10px; cursor: pointer;">🔑 Accedi</button>
+      <button *ngIf="!isLoggedIn" routerLink="/register" style="cursor: pointer;">📝 Registrati</button>
+      <button *ngIf="isLoggedIn" (click)="logout()" style="background-color: #333; color: white; cursor: pointer;">🚪 Esci</button>
+    </div>
+  </div>
+  
+  <hr>
+
+  <div *ngIf="isLoggedIn" style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; max-width: 500px; margin: 20px auto;">
+    <h3>🎨 Carica Opera</h3>
+    <input type="text" [(ngModel)]="title" placeholder="Titolo" style="padding: 10px; width: 80%; margin-bottom: 10px;"><br>
+    <input type="text" [(ngModel)]="tags" placeholder="Tag (es: #wow)" style="padding: 10px; width: 80%; margin-bottom: 10px;"><br>
+    <input type="file" (change)="onFileSelected($event)" accept="image/*" style="margin-bottom: 10px;"><br>
+    <button (click)="upload()" style="padding: 10px 20px; background-color: blue; color: white; border: none; cursor: pointer;">🚀 CARICA</button>
+  </div>
+
+  <h2>🖼️ LA GALLERIA 🖼️</h2>
+
+  <div *ngIf="(memes$ | async)?.length === 0" style="margin-top: 20px;">
+    <p>📭 Il museo è vuoto! Carica il primo meme.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
+    
+    <div *ngFor="let meme of memes$ | async" style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; width: 350px; background: white; margin-bottom: 20px; display: flex; flex-direction: column;">
+      
+      <div style="margin-bottom: 10px; color: #555; text-align: left;">
+        👤 <b>{{ meme.User?.username || meme.user?.username || 'Anonimo' }}</b>
+      </div>
+
+      <img [src]="'http://localhost:3000/' + meme.imagePath" style="width: 100%; border-radius: 5px;">
+      
+      <h3 style="margin: 10px 0 5px;">{{ meme.title }}</h3>
+      
+      <div style="margin-bottom: 10px;">
+        <span *ngFor="let tag of (meme.Tags || meme.tags || [])" style="color: blue; margin-right: 5px;">
+          #{{ tag.name }}
+        </span>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <small style="color: gray;">{{ meme.createdAt | date:'shortDate' }}</small>
+        
+        <button *ngIf="isLoggedIn" (click)="deleteMeme(meme.id)" 
+                style="background-color: white; border: 1px solid #ff4444; color: #ff4444; padding: 2px 8px; border-radius: 4px; cursor: pointer;">
+          🗑️ Elimina
+        </button>
+      </div>
+
+      <hr style="width: 100%; border: 0; border-top: 1px solid #eee;">
+
+      <div style="background-color: #f9f9f9; padding: 10px; text-align: left; border-radius: 5px;">
+        <h4 style="margin-top: 0;">💬 Commenti</h4>
+        
+        <div *ngFor="let comment of (meme.Comments || meme.comments || [])" style="margin-bottom: 5px;">
+          <b>{{ comment.User?.username || comment.user?.username }}:</b> {{ comment.text }}
+        </div>
+        
+        <div *ngIf="isLoggedIn" style="margin-top: 10px; display: flex;">
+          <input type="text" placeholder="Scrivi..." #boxCommento style="flex: 1; padding: 5px;">
+          <button (click)="postComment(meme.id, boxCommento)" style="margin-left: 5px;">Invia</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
