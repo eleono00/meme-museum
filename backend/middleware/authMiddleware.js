@@ -1,18 +1,25 @@
 const jwt = require('jsonwebtoken');
 
-module.exports = function(req, res, next) {
-    // 1. Cerca il token nell'intestazione
-    const token = req.header('Authorization');
+const JWT_SECRET = 'segreto_super_sicuro'; // da nascondere nel caso in cui lo rendessimo pubblico
 
-    // 2. Se non c'è, blocca tutto
-    if (!token) return res.status(401).json({ message: 'Accesso negato. Manca il token.' });
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    
+    // Formato standard: "Bearer <token>"
+    const token = authHeader && authHeader.split(' ')[1];
 
-    try {
-        // 3. Verifica la validità (deve coincidere con la parola segreta del Login)
-        const verified = jwt.verify(token, 'segreto_super_segreto');
-        req.user = verified;
-        next(); // Tutto ok, prosegui
-    } catch (err) {
-        res.status(400).json({ message: 'Token non valido.' });
+    if (token == null) {
+        return res.sendStatus(401); // Unauthorized
     }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.sendStatus(403); // Forbidden
+        }
+        
+        req.user = user; // Allega il payload dell'utente alla richiesta
+        next();
+    });
 };
+
+module.exports = { authenticateToken };

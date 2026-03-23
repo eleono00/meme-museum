@@ -1,73 +1,72 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, tap } from 'rxjs'; // Importiamo gli strumenti per l'Observable
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MemeService {
-  private apiUrl = 'http://localhost:3000/api/memes';
+  private apiUrl = 'http://localhost:3001/api/memes';
 
-  // 1. IL FLUSSO DATI (Inizia vuoto)
-  private memesSubject = new BehaviorSubject<any[]>([]);
-  
-  // 2. L'ANTENNA PUBBLICA (La Home si collegherà qui)
-  public memes$ = this.memesSubject.asObservable();
+  constructor(private http: HttpClient) { }
 
-  constructor(private http: HttpClient) {}
-
-  // --- SCARICA E AGGIORNA TUTTI ---
-  refreshMemes() {
-    this.http.get<any[]>(this.apiUrl).subscribe({
-      next: (data) => {
-        // Correzione per Windows: cambia \ in /
-        const cleanData = data.map(meme => {
-          if (meme.imagePath) {
-            meme.imagePath = meme.imagePath.replace(/\\/g, '/');
-          }
-          return meme;
-        });
-
-        console.log('📡 Dati aggiornati nel Service:', cleanData.length);
-        // Avvisa tutti i componenti che ascoltano
-        this.memesSubject.next(cleanData);
-      },
-      error: (err) => console.error('Errore refresh:', err)
-    });
+  getMemes(page: number = 1, tag: string = '', sort: string = 'newest', userId: number | null = null): Observable<any> {
+    let url = `${this.apiUrl}?page=${page}&sort=${sort}`;
+    
+    if (tag) url += `&tag=${tag}`;
+    if (userId) url += `&user=${userId}`; 
+    
+    return this.http.get(url);
   }
 
-  // --- CREA MEME (e aggiorna subito) ---
-  createMeme(title: string, tags: string, image: File) {
+  getMemeOfTheDay(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/day`);
+  }
+
+  createMeme(formData: FormData): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post(this.apiUrl, formData, { headers });
+  }
+
+  deleteMeme(id: number): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.delete(`${this.apiUrl}/${id}`, { headers });
+  }
+
+  toggleLike(id: number): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post(`${this.apiUrl}/${id}/like`, {}, { headers });
+  }
+
+  // 👇 NUOVA FUNZIONE AGGIUNTA PER IL DISLIKE!
+  toggleDislike(id: number): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post(`${this.apiUrl}/${id}/dislike`, {}, { headers });
+  }
+
+  addComment(id: number, text: string): Observable<any> {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.post(`${this.apiUrl}/${id}/comments`, { text }, { headers });
+  }
+
+  uploadMeme(title: string, image: File, tags: string): Observable<any> {
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('tags', tags);
     formData.append('image', image);
+    if (tags) {
+      formData.append('tags', tags);
+    }
+    
+    const token = localStorage.getItem('token'); 
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
 
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `${token}` });
-
-    return this.http.post(`${this.apiUrl}/create`, formData, { headers }).pipe(
-      // Appena il server dice "OK", noi aggiorniamo la lista per tutti
-      tap(() => this.refreshMemes())
-    );
-  }
-
-  // --- ELIMINA MEME (e aggiorna subito) ---
-  deleteMeme(id: number) {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `${token}` });
-
-    return this.http.delete(`${this.apiUrl}/${id}`, { headers }).pipe(
-      tap(() => this.refreshMemes())
-    );
-  }
-
-  // --- AGGIUNGI COMMENTO (e aggiorna subito) ---
-  addComment(memeId: number, text: string) {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `${token}` });
-    return this.http.post(`${this.apiUrl}/${memeId}/comments`, { text }, { headers }).pipe(
-        tap(() => this.refreshMemes())
-    );
+    return this.http.post(this.apiUrl, formData, { headers: headers });
   }
 }

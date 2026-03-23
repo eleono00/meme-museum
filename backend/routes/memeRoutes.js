@@ -1,26 +1,33 @@
 const express = require('express');
-const router = express.Router(); // Abbiamo definito la variabile 'router' qui
-const multer = require('multer');
+const router = express.Router();
 const memeController = require('../controllers/memeController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/authMiddleware');
+const upload = require('../middleware/upload'); 
 
-// --- CONFIGURAZIONE MULTER ---
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
+// ROTTE PUBBLICHE
 
-const upload = multer({ storage: storage });
+// 1. Prende il Meme del giorno 
+router.get('/day', memeController.getMemeOfTheDay);
 
-// --- LE ROTTE ---
-
-// Qui stavi usando "route.post", ma la variabile sopra si chiama "router"
-router.post('/create', authMiddleware, upload.single('image'), memeController.createMeme);
-
+// 2. Prende la lista di tutti i Meme 
 router.get('/', memeController.getAllMemes);
-router.post('/:id/comments', authMiddleware, memeController.addComment);
+
+
+// --- ROTTE PRIVATE 
+
+// 3. Carica un nuovo meme
+router.post('/', authenticateToken, upload.single('image'), memeController.createMeme);
+
+// 4. Elimina un proprio meme
+router.delete('/:id', authenticateToken, memeController.deleteMeme);
+
+// 5. Aggiunge un commento a un meme
+router.post('/:id/comments', authenticateToken, memeController.addComment);
+
+// 6. Mette o toglie Like a un meme
+router.post('/:id/like', authenticateToken, memeController.toggleLike);
+
+// 7. Mette o toglie DisLike a un meme
+router.post('/:id/dislike', authenticateToken, memeController.toggleDislike);
+
 module.exports = router;

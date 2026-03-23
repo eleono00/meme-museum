@@ -1,53 +1,39 @@
-
-import { AuthService } from '../../services/auth'; // Il nostro postino
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router'; 
-import { ToastrService } from 'ngx-toastr';
+import { Router, RouterModule } from '@angular/router'; // Importiamo il Router
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './login.html',
-  styleUrl: './login.scss' // o .scss
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './login.html' // Controlla che il nome sia giusto
 })
 export class LoginComponent {
-  user = {
-    email: '',
-    password: ''
-  };
+  email = '';
+  password = '';
+  errorMessage = '';
 
-  // 2. IMPORTANTE: Devi inserire 'private router: Router' qui dentro!
-  constructor(
-    private authService: AuthService, 
-    private router: Router,             // <--- SENZA QUESTO, NON PUÒ NAVIGARE!
-    private toastr: ToastrService
-  ) {}
+  // Iniettiamo il Router nel costruttore
+  constructor(private authService: AuthService, private router: Router) {}
 
   onLogin() {
-    // Validazione semplice
-    if (!this.user.email || !this.user.password) {
-      this.toastr.error('Compila tutti i campi', 'Errore');
-      return;
-    }
+    console.log("Tentativo di login...");
+    
+    const credentials = { email: this.email, password: this.password };
 
-    this.authService.login(this.user).subscribe({
+    this.authService.login(credentials).subscribe({
       next: (response) => {
-        this.toastr.success('Bentornato!', 'Login effettuato');
+        console.log("Login riuscito! Risposta:", response);
         
-        // Salva il token
-        localStorage.setItem('token', response.token);
-        
-        console.log("Token salvato, provo a navigare verso Home...");
-
-        // 3. ORA QUESTO FUNZIONERÀ
-        this.router.navigate(['/home']); 
+        // 👇 QUESTA È LA RIGA CHE TI MANCAVA!
+        // Dice: "Adesso spostati alla pagina principale (Home)"
+        this.router.navigate(['/']); 
       },
-      error: (error) => {
-        console.error(error);
-        this.toastr.error('Email o password errati', 'Errore Login');
+      error: (err) => {
+        console.error("Errore login:", err);
+        this.errorMessage = "Email o Password errati.";
       }
     });
   }

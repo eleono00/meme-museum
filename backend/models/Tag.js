@@ -5,7 +5,7 @@ const Tag = sequelize.define('Tag', {
     name: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true // Non vogliamo due tag "gatto" identici!
+        unique: true
     }
 });
 

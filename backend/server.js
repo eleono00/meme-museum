@@ -1,47 +1,76 @@
 const express = require('express');
 const cors = require('cors');
-const sequelize = require('./config/database');
-const authRoutes = require('./routes/authRoutes'); 
-const memeRoutes = require('./routes/memeRoutes'); 
 const path = require('path');
+const sequelize = require('./config/database');
 
-// 1. IMPORTA TUTTI I MODELLI
+// Modelli
 const User = require('./models/User');
 const Meme = require('./models/Meme');
-const Tag = require('./models/Tag');     
+const Tag = require('./models/Tag');
 const Comment = require('./models/Comment');
+const Like = require('./models/Like');
+const Dislike = require('./models/Dislike');
+
+// Rotte
+const authRoutes = require('./routes/authRoutes');
+const memeRoutes = require('./routes/memeRoutes');
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
+// Middleware globali
+app.use(cors({ origin: '*' })); // Abilita CORS per il frontend
+app.use(express.json());        // Parsing del body in formato JSON
 
-//creazione relazioni meme utente uno a molti
-User.hasMany(Meme);  
+// Logger richieste (utile per debug)
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
+// Configurazione cartella statica per le immagini
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// --- Definizione Associazioni Database ---
+
+// Relazioni Utente - Meme
+User.hasMany(Meme, { onDelete: 'CASCADE' });
 Meme.belongsTo(User);
 
-// Relazione Meme <-> Tag (Molti a Molti)
-Meme.belongsToMany(Tag, { through: 'MemeTags' }); 
-Tag.belongsToMany(Meme, { through: 'MemeTags' });
+// Relazioni Commenti
+User.hasMany(Comment, { onDelete: 'CASCADE' });
+Comment.belongsTo(User);
+Meme.hasMany(Comment, { onDelete: 'CASCADE' });
+Comment.belongsTo(Meme);
 
-// NUOVA: Relazione Commenti
-User.hasMany(Comment);      // Un utente scrive tanti commenti
-Comment.belongsTo(User);    // Un commento è di un utente
+// Relazioni Tag (Molti a Molti)
+Meme.belongsToMany(Tag, { through: 'MemeTags', onDelete: 'CASCADE' });
+Tag.belongsToMany(Meme, { through: 'MemeTags', onDelete: 'CASCADE' });
 
-Meme.hasMany(Comment);      // Un meme ha tanti commenti
-Comment.belongsTo(Meme)
+// Relazioni Like
+User.hasMany(Like, { onDelete: 'CASCADE' });
+Like.belongsTo(User);
+Meme.hasMany(Like, { onDelete: 'CASCADE' });
+Like.belongsTo(Meme);
 
-app.use(cors());
-app.use(express.json());
-// Rendi la cartella 'uploads' accessibile pubblicamente
-app.use('/uploads', express.static('uploads'));
-app.use('/api/auth', authRoutes); 
+// Relazioni Dislike
+User.hasMany(Dislike, { onDelete: 'CASCADE' });
+Dislike.belongsTo(User);
+Meme.hasMany(Dislike, { onDelete: 'CASCADE' });
+Dislike.belongsTo(Meme);
+
+// Registrazione Rotte API
+app.use('/api/auth', authRoutes);
 app.use('/api/memes', memeRoutes);
 
-sequelize.sync({ alter: true }) 
+// Sincronizzazione Database e Avvio Server
+sequelize.sync({ force: false })
     .then(() => {
-        console.log(' Database sincronizzato !');
+        console.log('Database connesso e sincronizzato.');
         app.listen(PORT, () => {
-            console.log(` Server Backend attivo su http://localhost:${PORT}`);
+            console.log(`Server avviato su http://localhost:${PORT}`);
         });
     })
-    .catch(err => console.error('Errore:', err));
+    .catch(err => {
+        console.error('Errore durante la connessione al database:', err);
+    });

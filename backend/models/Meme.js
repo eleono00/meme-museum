@@ -11,11 +11,10 @@ const Meme = sequelize.define('Meme', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    imagePath: { // Qui salveremo l'URL o il nome del file
+    imagePath: {
         type: DataTypes.STRING,
         allowNull: false
     }
-    // L'ID dell'utente che lo carica verrà aggiunto automaticamente dopo!
 });
 
 module.exports = Meme;

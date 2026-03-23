@@ -1,73 +1,206 @@
-<div class="container" style="text-align: center; margin-top: 50px; font-family: sans-serif; padding-bottom: 50px;">
-  
-  <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-    <h1>🏛️ MUSEO DEI MEME 🏛️</h1>
-    
-    <div>
-      <button *ngIf="!isLoggedIn" routerLink="/login" style="margin-right: 10px; cursor: pointer;">🔑 Accedi</button>
-      <button *ngIf="!isLoggedIn" routerLink="/register" style="cursor: pointer;">📝 Registrati</button>
-      <button *ngIf="isLoggedIn" (click)="logout()" style="background-color: #333; color: white; cursor: pointer;">🚪 Esci</button>
-    </div>
-  </div>
-  
-  <hr>
-
-  <div *ngIf="isLoggedIn" style="background-color: #e3f2fd; padding: 20px; border-radius: 10px; max-width: 500px; margin: 20px auto;">
-    <h3>🎨 Carica Opera</h3>
-    <input type="text" [(ngModel)]="title" placeholder="Titolo" style="padding: 10px; width: 80%; margin-bottom: 10px;"><br>
-    <input type="text" [(ngModel)]="tags" placeholder="Tag (es: #wow)" style="padding: 10px; width: 80%; margin-bottom: 10px;"><br>
-    <input type="file" (change)="onFileSelected($event)" accept="image/*" style="margin-bottom: 10px;"><br>
-    <button (click)="upload()" style="padding: 10px 20px; background-color: blue; color: white; border: none; cursor: pointer;">🚀 CARICA</button>
-  </div>
-
-  <h2>🖼️ LA GALLERIA 🖼️</h2>
-
-  <div *ngIf="(memes$ | async)?.length === 0" style="margin-top: 20px;">
-    <p>📭 Il museo è vuoto! Carica il primo meme.</p>
-  </div>
-
-  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
-    
-    <div *ngFor="let meme of memes$ | async" style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; width: 350px; background: white; margin-bottom: 20px; display: flex; flex-direction: column;">
-      
-      <div style="margin-bottom: 10px; color: #555; text-align: left;">
-        👤 <b>{{ meme.User?.username || meme.user?.username || 'Anonimo' }}</b>
+<div class="modal fade modal-orange-theme" id="memeOfDayModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-award-fill"></i> Scelto dalla Redazione</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
       </div>
-
-      <img [src]="'http://localhost:3000/' + meme.imagePath" style="width: 100%; border-radius: 5px;">
-      
-      <h3 style="margin: 10px 0 5px;">{{ meme.title }}</h3>
-      
-      <div style="margin-bottom: 10px;">
-        <span *ngFor="let tag of (meme.Tags || meme.tags || [])" style="color: blue; margin-right: 5px;">
-          #{{ tag.name }}
-        </span>
+      <div class="modal-body p-0 text-center position-relative d-flex align-items-center justify-content-center modal-body-brutal modal-body-hero">
+        <div *ngIf="isLoadingMemeOfDay" class="py-5"><div class="spinner-border text-brutal-orange"></div></div>
+        <div *ngIf="memeOfDayError && !isLoadingMemeOfDay" class="py-5"><i class="bi bi-exclamation-triangle-fill fs-1 text-danger"></i></div>
+        <img *ngIf="memeOfTheDay && !isLoadingMemeOfDay && !memeOfDayError" [src]="'http://localhost:3001/' + memeOfTheDay.imagePath" class="img-fluid" style="max-height: 70vh; object-fit: contain;">
       </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <small style="color: gray;">{{ meme.createdAt | date:'shortDate' }}</small>
-        
-        <button *ngIf="isLoggedIn" (click)="deleteMeme(meme.id)" 
-                style="background-color: white; border: 1px solid #ff4444; color: #ff4444; padding: 2px 8px; border-radius: 4px; cursor: pointer;">
-          🗑️ Elimina
-        </button>
-      </div>
-
-      <hr style="width: 100%; border: 0; border-top: 1px solid #eee;">
-
-      <div style="background-color: #f9f9f9; padding: 10px; text-align: left; border-radius: 5px;">
-        <h4 style="margin-top: 0;">💬 Commenti</h4>
-        
-        <div *ngFor="let comment of (meme.Comments || meme.comments || [])" style="margin-bottom: 5px;">
-          <b>{{ comment.User?.username || comment.user?.username }}:</b> {{ comment.text }}
+      <div class="modal-footer d-flex justify-content-between align-items-center p-4" *ngIf="memeOfTheDay && !isLoadingMemeOfDay && !memeOfDayError">
+        <div class="text-start">
+          <h4 class="fw-bold mb-1">{{ memeOfTheDay?.title }}</h4>
+          <span class="tag-pill">#{{ memeOfTheDay?.Tags?.[0]?.name || 'Top' }}</span>
         </div>
-        
-        <div *ngIf="isLoggedIn" style="margin-top: 10px; display: flex;">
-          <input type="text" placeholder="Scrivi..." #boxCommento style="flex: 1; padding: 5px;">
-          <button (click)="postComment(meme.id, boxCommento)" style="margin-left: 5px;">Invia</button>
+        <div class="d-flex align-items-center gap-4">
+          <button (click)="likeMemeOfTheDay()" class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2 btn-action" [style.color]="isLiked(memeOfTheDay) ? 'var(--museum-orange)' : '#111111'">
+            <i class="bi" [ngClass]="isLiked(memeOfTheDay) ? 'bi-heart-fill' : 'bi-heart'" style="font-size: 2rem;"></i>
+            <span class="fw-bold fs-4">{{ memeOfTheDay?.Likes?.length || 0 }}</span>
+          </button>
+          <button (click)="dislikeMemeOfTheDay()" class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2 btn-action" [style.color]="isDisliked(memeOfTheDay) ? 'var(--museum-orange)' : '#111111'" title="Non mi piace">
+            <i class="bi" [ngClass]="isDisliked(memeOfTheDay) ? 'bi-hand-thumbs-down-fill' : 'bi-hand-thumbs-down'" style="font-size: 2rem;"></i>
+            <span class="fw-bold fs-4">{{ memeOfTheDay?.Dislikes?.length || 0 }}</span> 
+          </button>
         </div>
       </div>
-
     </div>
   </div>
+</div>
+
+<div class="modal fade" id="genericMemeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      
+      <div class="modal-header d-flex align-items-center gap-3">
+        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold avatar-medium">
+          {{ selectedMeme?.User?.username?.charAt(0) | uppercase }}
+        </div>
+        <h5 class="modal-title fw-bold mb-0 text-brutal-dark">@{{ selectedMeme?.User?.username }}</h5>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      
+      <div class="modal-body p-0 text-center modal-body-brutal">
+        <img *ngIf="selectedMeme" [src]="'http://localhost:3001/' + selectedMeme.imagePath" class="img-fluid" style="max-height: 75vh; object-fit: contain;">
+      </div>
+      
+      <div class="modal-footer d-flex flex-column align-items-stretch p-0" *ngIf="selectedMeme">
+        
+        <div class="d-flex justify-content-between align-items-center p-4 w-100 modal-header-brutal">
+          <div class="text-start">
+            <h4 class="fw-bold mb-1 text-brutal-dark">{{ selectedMeme?.title }}</h4>
+            <span class="tag-pill" *ngIf="selectedMeme?.Tags?.length > 0">#{{ selectedMeme?.Tags?.[0]?.name }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-4">
+            <button (click)="toggleLike(selectedMeme.id)" class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2 btn-action" [style.color]="isLiked(selectedMeme) ? 'var(--museum-orange)' : '#111111'">
+              <i class="bi" [ngClass]="isLiked(selectedMeme) ? 'bi-heart-fill' : 'bi-heart'" style="font-size: 2rem;"></i>
+              <span class="fw-bold fs-4">{{ selectedMeme?.Likes?.length || 0 }}</span>
+            </button>
+            <button (click)="toggleDislike(selectedMeme.id)" class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2 btn-action" [style.color]="isDisliked(selectedMeme) ? 'var(--museum-orange)' : '#111111'" title="Non mi piace">
+              <i class="bi" [ngClass]="isDisliked(selectedMeme) ? 'bi-hand-thumbs-down-fill' : 'bi-hand-thumbs-down'" style="font-size: 2rem;"></i>
+              <span class="fw-bold fs-4">{{ selectedMeme?.Dislikes?.length || 0 }}</span> 
+            </button>
+          </div>
+        </div>
+
+        <div class="comments-section p-4 text-start w-100 comments-area-brutal">
+          <h6 class="fw-bold mb-3 text-brutal-dark text-uppercase"><i class="bi bi-chat-square-text-fill text-brutal-orange"></i> Commenti ({{ selectedMeme?.Comments?.length || 0 }})</h6>
+          
+          <div *ngIf="!selectedMeme?.Comments || selectedMeme.Comments.length === 0" class="text-muted small fw-bold">Nessun commento. Rompi il ghiaccio!</div>
+          
+          <div *ngFor="let c of selectedMeme?.Comments" class="mb-2 pb-2 border-bottom comment-item-brutal">
+            <span class="text-brutal-orange fw-bold fs-6">@{{ c.User?.username }}:</span> 
+            <span class="fw-medium text-brutal-dark fs-6"> {{ c.text }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="isLoggedIn" class="p-3 w-100 comments-input-brutal">
+          <div class="input-group">
+            <input #modalCInput type="text" class="form-control form-control-dark border-0 shadow-none px-3 py-2 fs-5" placeholder="Scrivi un commento..." (keyup.enter)="addComment(selectedMeme.id, modalCInput.value); modalCInput.value=''">
+            <button class="btn btn-link text-decoration-none btn-action" (click)="addComment(selectedMeme.id, modalCInput.value); modalCInput.value=''"><i class="bi bi-send-fill fs-3 text-brutal-orange"></i></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mt-4">
+  
+  <div class="row justify-content-center mb-5">
+    <div class="col-md-8"> <div class="input-group input-group-lg brutal-search-group">
+        <span class="input-group-text border-0 bg-transparent rounded-0 text-brutal-dark brutal-search-border-right"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control border-0 shadow-none bg-transparent rounded-0 text-brutal-dark fw-bold" placeholder="Cerca tag..." [ngModel]="currentTag" (ngModelChange)="onSearchInput($event)">
+        <span class="input-group-text border-0 bg-transparent rounded-0 text-brutal-dark brutal-search-border-left brutal-search-border-right"><i class="bi bi-sort-down"></i></span>
+        <select class="form-select border-0 shadow-none bg-transparent rounded-0 text-brutal-dark fw-bold cursor-pointer" style="max-width: 200px;" (change)="onSortChange($event)"> <option value="newest" selected>Più recenti</option>
+          <option value="oldest">Meno recenti</option>
+          <option value="likes">Più popolari</option>
+          <option value="least_likes">Meno popolari</option>
+        </select>
+      </div>
+      <div class="text-center mt-3" *ngIf="currentTag">
+        <button class="btn btn-sm text-brutal-dark fw-bold" (click)="searchByTag('')"><i class="bi bi-x-circle-fill text-danger"></i> Rimuovi filtro: {{currentTag}}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row justify-content-center g-3 mb-5">
+    <div class="col-12 col-md-auto">
+      <button class="btn btn-elegant-orange w-100 px-5 py-3 fs-5 d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#memeOfDayModal">
+        <i class="bi bi-fire fs-4"></i> Opera in Evidenza
+      </button>
+    </div>
+    <div class="col-12 col-md-auto" *ngIf="isLoggedIn">
+      <button class="btn btn-outline-orange w-100 px-5 py-3 fs-5 d-flex align-items-center justify-content-center gap-2 bg-transparent" (click)="toggleUpload()">
+        <i class="bi bi-cloud-arrow-up fs-4"></i> {{ isUploadVisible ? 'Annulla Upload' : 'Aggiungi Opera' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isUploadVisible" class="mb-5 animate-fade-in">
+    <div class="p-4 p-md-5 brutal-box-large">
+      <h5 class="mb-4 fw-bold d-flex align-items-center gap-2 text-brutal-dark"><i class="bi bi-palette text-brutal-orange"></i> Nuova Esposizione</h5>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <label class="form-label fw-bold text-brutal-dark">Titolo dell'Opera</label>
+          <input [(ngModel)]="newMemeTitle" class="form-control form-control-dark py-2" placeholder="Es: La Gioconda moderna...">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-bold text-brutal-dark">File Immagine</label>
+          <input type="file" (change)="onFileSelected($event)" class="form-control form-control-dark py-2">
+        </div>
+      </div>
+      <div class="row g-4 mt-2 align-items-end">
+        <div class="col-md-9">
+          <label class="form-label fw-bold text-brutal-dark">Categorie (Tag)</label>
+          <input type="text" class="form-control form-control-dark mb-2 py-2" placeholder="Scrivi un tag e premi Spazio..." [(ngModel)]="currentTagInput" (keydown)="onTagKeydown($event)">
+          <div class="d-flex flex-wrap gap-2">
+            <span *ngFor="let tag of tagsArray; let i = index" class="tag-pill">#{{ tag }} <i class="bi bi-x ms-1" (click)="removeTag(i)"></i></span>
+          </div>
+        </div>
+        <div class="col-md-3">
+<button (click)="uploadMeme()" class="btn btn-elegant-orange w-100 py-3 fs-5" [disabled]="isUploading">
+  <span *ngIf="!isUploading"><i class="bi bi-check2-circle"></i> Pubblica</span>
+  <span *ngIf="isUploading"><i class="spinner-border spinner-border-sm"></i> In corso...</span>
+</button>        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div *ngFor="let meme of memes; trackBy: trackByMemeId" class="col-md-4">
+      <div class="museum-card h-100 d-flex flex-column">
+        
+        <div class="p-3 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+             <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold avatar-small">
+               {{ meme.User?.username?.charAt(0) | uppercase }}
+             </div>
+             <div class="lh-sm">
+               <span class="fw-bold d-block text-brutal-dark fs-6">@{{ meme.User?.username }}</span>
+               <small class="text-brutal-gray font-monospace fw-bold">{{ meme.createdAt | date:'dd/MM/yyyy' }}</small>
+             </div>
+          </div>
+          <button *ngIf="currentUserId === meme.UserId" (click)="deleteMeme(meme.id)" class="btn btn-link p-0 btn-trash" title="Elimina"><i class="bi bi-trash3-fill fs-5"></i></button>
+        </div>
+
+        <div class="meme-image-container cursor-pointer" data-bs-toggle="modal" data-bs-target="#genericMemeModal" (click)="openMemeModal(meme)">
+          <div class="position-absolute top-0 end-0 p-2 text-dark opacity-50"><i class="bi bi-arrows-angle-expand fs-4"></i></div>
+          <img [src]="'http://localhost:3001/' + meme.imagePath" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+        </div>
+
+        <div class="p-3 flex-grow-1 d-flex flex-column">
+          <h5 class="fw-bold mb-2 text-truncate text-brutal-dark">{{ meme.title }}</h5>
+          <div class="d-flex flex-wrap gap-1 mb-3"><span *ngFor="let tag of meme.Tags" (click)="searchByTag(tag.name)" class="tag-pill">#{{ tag.name }}</span></div>
+          
+          <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-auto modal-header-brutal">
+             <div class="d-flex align-items-center gap-3">
+               <button (click)="toggleLike(meme.id)" class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-1 btn-action" [style.color]="isLiked(meme) ? 'var(--museum-orange)' : '#111111'">
+                 <i class="bi" [ngClass]="isLiked(meme) ? 'bi-heart-fill' : 'bi-heart'" style="font-size: 1.3rem;"></i>
+                 <span class="fw-bold fs-6">{{ meme.Likes?.length || 0 }}</span>
+               </button>
+               <button (click)="toggleDislike(meme.id)" class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-1 btn-action" [style.color]="isDisliked(meme) ? 'var(--museum-orange)' : '#111111'" title="Non mi piace">
+                 <i class="bi" [ngClass]="isDisliked(meme) ? 'bi-hand-thumbs-down-fill' : 'bi-hand-thumbs-down'" style="font-size: 1.3rem;"></i>
+                 <span class="fw-bold fs-6">{{ meme.Dislikes?.length || 0 }}</span> 
+               </button>
+             </div>
+             
+             <span class="fw-bold d-flex align-items-center gap-1 small text-dark cursor-pointer" (click)="openMemeModal(meme)" data-bs-toggle="modal" data-bs-target="#genericMemeModal" title="Leggi o scrivi commenti">
+               <i class="bi bi-chat-text-fill fs-5"></i> {{ meme.Comments?.length || 0 }}
+             </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-center gap-4 mt-5 mb-5" *ngIf="totalPages > 1">
+    <button class="btn btn-pop-white px-4" (click)="prevPage()" [disabled]="currentPage === 1"><i class="bi bi-arrow-left fw-bold fs-4"></i></button>
+    <span class="align-self-center fw-bold fs-5 text-brutal-dark">PAGINA {{currentPage}} DI {{totalPages}}</span>
+    <button class="btn btn-pop-white px-4" (click)="nextPage()" [disabled]="currentPage === totalPages"><i class="bi bi-arrow-right fw-bold fs-4"></i></button>
+  </div>
+
 </div>

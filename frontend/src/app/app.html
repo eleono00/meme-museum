@@ -1,1 +1,32 @@
-<router-outlet></router-outlet>
+<nav class="navbar navbar-expand-lg fixed-top">
+  <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+    
+    <a class="navbar-brand" routerLink="/">
+      <i class="bi bi-aspect-ratio"></i> Meme Museum
+    </a>
+
+    <div class="d-flex align-items-center gap-3">
+      <a class="nav-link d-none d-sm-block me-3" routerLink="/">Home</a>
+
+      <ng-container *ngIf="!authService.isLoggedIn()">
+        <a class="btn btn-outline-orange px-4 py-2" routerLink="/login">Accedi</a>
+        <a class="btn btn-elegant-orange px-4 py-2 ms-2" routerLink="/register">Registrati</a>
+      </ng-container>
+
+      <ng-container *ngIf="authService.isLoggedIn()">
+        <button class="btn btn-link nav-link p-0 d-flex align-items-center gap-2 text-decoration-none" routerLink="/profile">
+          <i class="bi bi-person-circle fs-3 text-brutal-orange"></i> 
+          <span class="fs-5 fw-bold text-uppercase d-none d-md-block">{{ authService.getCurrentUser()?.username }}</span>
+        </button>
+        
+        <button class="btn btn-link nav-link fs-3 p-0 ms-3 text-decoration-none" (click)="authService.logout()" title="Esci">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </ng-container>
+    </div>
+  </div>
+</nav>
+
+<div class="container main-content-margin">
+  <router-outlet></router-outlet>
+</div>

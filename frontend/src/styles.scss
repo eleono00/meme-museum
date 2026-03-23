@@ -1,3 +1,120 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;/* You can add global styles to this file, and also import other style files */
+/* ==========================================
+   TEMA: BRUTALIST / POP ART (MEME MUSEUM)
+   ========================================== */
+
+:root {
+  --bs-body-bg: #f4f4f0; 
+  --bs-body-color: #111111; 
+  --museum-orange: #ff5722; 
+  --museum-card-bg: #ffffff; 
+  
+  --brutal-border: 3px solid #111111;
+  --brutal-shadow: 6px 6px 0px #111111;
+  --brutal-shadow-hover: 2px 2px 0px #111111;
+}
+
+body { 
+  background-color: var(--bs-body-bg); 
+  color: var(--bs-body-color); 
+  font-family: 'Segoe UI', Helvetica, sans-serif;
+  background-image: radial-gradient(#d5d5d0 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* NAVBAR E MENU */
+.navbar {
+    background-color: var(--bs-body-bg) !important; 
+    border-bottom: var(--brutal-border); 
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+.navbar-brand {
+    font-size: 1.8rem !important; 
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #111111 !important;
+}
+.navbar-brand i { font-size: 2rem; color: var(--museum-orange); }
+.nav-link { font-size: 1.2rem !important; font-weight: 700 !important; color: #111111 !important; text-transform: uppercase; }
+
+/* BOTTONI */
+.btn-elegant-orange, .btn-outline-orange { 
+  background-color: var(--museum-orange); color: #111111 !important; font-weight: 900; 
+  border: var(--brutal-border) !important; border-radius: 0px !important; box-shadow: var(--brutal-shadow); 
+  transition: all 0.15s ease; text-transform: uppercase; letter-spacing: 1px;
+}
+.btn-elegant-orange:hover, .btn-outline-orange:hover { 
+  background-color: #ff7043; transform: translate(4px, 4px); box-shadow: var(--brutal-shadow-hover); color: #111111 !important; 
+}
+.btn-trash { color: #111111 !important; transition: all 0.2s ease; }
+.btn-trash:hover { color: #dc3545 !important; transform: scale(1.2) rotate(10deg); }
+.btn-action { color: #111111; transition: transform 0.2s; }
+.btn-action:hover { color: var(--museum-orange); transform: scale(1.1); }
+
+/* CARD DEI MEME */
+.museum-card { background-color: var(--museum-card-bg); border-radius: 0px !important; border: var(--brutal-border); box-shadow: var(--brutal-shadow); overflow: hidden; transition: all 0.2s ease; }
+.museum-card:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px var(--museum-orange); }
+.meme-image-container { height: 260px; background-color: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border-bottom: var(--brutal-border); }
+
+/* PILLOLE DEI TAG */
+.tag-pill { background-color: #fff; color: #111111; border: 2px solid #111111; border-radius: 0px; padding: 4px 10px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 2px 2px 0px #111111; }
+.tag-pill:hover { background-color: var(--museum-orange); transform: translate(1px, 1px); box-shadow: 1px 1px 0px #111111; }
+
+.text-white { color: #111111 !important; } 
+h4, h5 { font-weight: 900 !important; }
+
+/* INPUT, SELECT E UPLOAD FILE */
+.form-control-dark { background-color: #ffffff !important; border: var(--brutal-border) !important; color: #111111 !important; border-radius: 0px !important; font-weight: bold; }
+.form-control-dark:focus { border-color: var(--museum-orange) !important; box-shadow: 4px 4px 0px var(--museum-orange) !important; outline: none; }
+.form-control-dark::placeholder { color: #888888 !important; }
+select.form-select { border: var(--brutal-border) !important; border-radius: 0px !important; font-weight: bold; background-color: #ffffff; box-shadow: 4px 4px 0px #dddddd; }
+select.form-select:focus { border-color: var(--museum-orange) !important; box-shadow: 4px 4px 0px var(--museum-orange) !important; outline: none; }
+input[type="file"].form-control-dark::file-selector-button { background-color: var(--museum-orange); color: #111111; border: none; border-right: var(--brutal-border); padding: 0.375rem 1rem; margin-right: 1rem; cursor: pointer; font-weight: 900; text-transform: uppercase; transition: 0.2s; }
+input[type="file"].form-control-dark::file-selector-button:hover { background-color: #ff7043; }
+
+/* FINESTRE MODALI */
+.modal-content { background-color: var(--bs-body-bg); color: #111111; border: var(--brutal-border); border-radius: 0; box-shadow: 10px 10px 0px rgba(0,0,0,1); }
+.modal-header, .modal-footer { border-color: #111111 !important; }
+.modal-orange-theme .modal-content { border-color: var(--museum-orange) !important; box-shadow: 12px 12px 0px var(--museum-orange) !important; }
+.modal-orange-theme .modal-header { background-color: var(--museum-orange) !important; border-bottom: 3px solid #111111 !important; color: #111111 !important; }
+.modal-orange-theme .modal-title, .modal-orange-theme .btn-close { color: #111111 !important; filter: none !important; }
+
+
+/* ==========================================
+   CLASSI UTILITY BRUTALISTE (Pulizia HTML)
+   ========================================== */
+
+/* Layout & Spaziature */
+.page-container-brutal { margin-top: 130px; margin-bottom: 50px; }
+.main-content-margin { margin-top: 110px; }
+
+/* Contenitori e Modali */
+.brutal-box-large { background-color: var(--museum-card-bg); border: var(--brutal-border); box-shadow: 10px 10px 0px #111111; }
+.modal-body-hero { min-height: 300px; }
+.modal-body-brutal { background-color: var(--bs-body-bg); border-bottom: var(--brutal-border); }
+.modal-header-brutal { border-bottom: var(--brutal-border) !important; }
+.comments-area-brutal { max-height: 250px; overflow-y: auto; background-color: #f8f8f8; }
+.comments-input-brutal { background-color: var(--bs-body-bg); border-top: var(--brutal-border); }
+
+/* Ricerca */
+.brutal-search-group { border: var(--brutal-border); box-shadow: var(--brutal-shadow); background-color: #ffffff; border-radius: 0; }
+.brutal-search-border-right { border-right: var(--brutal-border) !important; }
+.brutal-search-border-left { border-left: var(--brutal-border) !important; }
+
+/* Avatar / Utente */
+.avatar-small { width: 34px; height: 34px; border: 2px solid #111111; background-color: var(--museum-orange); color: #111111; font-size: 0.95rem; }
+.avatar-medium { width: 40px; height: 40px; border: 2px solid #111111; background-color: var(--museum-orange); color: #111111; }
+.avatar-large { width: 100px; height: 100px; font-size: 3rem; background-color: var(--museum-orange); color: #111111; border: 4px solid #111111; box-shadow: 6px 6px 0px #111111; font-weight: 900; }
+
+/* Testi e Colori Aggiuntivi */
+.text-brutal-dark { color: #111111 !important; }
+.text-brutal-orange { color: var(--museum-orange) !important; }
+.text-brutal-gray { color: #555555 !important; }
+.brutal-link { color: #111111; text-decoration: underline; text-decoration-thickness: 2px; font-weight: bold; transition: color 0.2s; }
+.brutal-link:hover { color: var(--museum-orange); }
+.cursor-pointer { cursor: pointer; transition: color 0.2s; }
+.cursor-pointer:hover { color: var(--museum-orange); }
