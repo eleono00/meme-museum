@@ -39,7 +39,7 @@ export class AuthService {
     return !!localStorage.getItem('token');
   }
 
-  // 👇 QUESTA È LA FUNZIONE CHE MANCAVA E TI DAVA ERRORE 👇
+  //mi restituisce lo user loggato
   getCurrentUser(): any {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;

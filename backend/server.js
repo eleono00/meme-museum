@@ -19,10 +19,10 @@ const app = express();
 const PORT = 3001;
 
 // Middleware globali
-app.use(cors({ origin: '*' })); // Abilita CORS per il frontend
+app.use(cors({ origin: '*' })); // Abilito CORS per il frontend
 app.use(express.json());        // Parsing del body in formato JSON
 
-// Logger richieste (utile per debug)
+// Logger richieste 
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
@@ -59,11 +59,11 @@ Dislike.belongsTo(User);
 Meme.hasMany(Dislike, { onDelete: 'CASCADE' });
 Dislike.belongsTo(Meme);
 
-// Registrazione Rotte API
+// Registrazione rotte API
 app.use('/api/auth', authRoutes);
 app.use('/api/memes', memeRoutes);
 
-// Sincronizzazione Database e Avvio Server
+// Sincronizzazione Database e avvio server
 sequelize.sync({ force: false })
     .then(() => {
         console.log('Database connesso e sincronizzato.');

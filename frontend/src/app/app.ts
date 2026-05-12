@@ -5,6 +5,7 @@ import { AuthService } from './services/auth'; // Controlla il percorso!
 
 @Component({
   selector: 'app-root',
+  //nuova architettura Angular senza moduli
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './app.html',

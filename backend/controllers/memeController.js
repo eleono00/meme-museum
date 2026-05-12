@@ -6,6 +6,7 @@ const Comment = require('../models/Comment');
 const Like = require('../models/Like');
 const Dislike = require('../models/Dislike');
 
+// Funzioni a supporto delle QUERY
 // 1. Calcola Paginazione
 const getPagination = (page, size) => {
     const limit = size ? +size : 10; // Default 10
@@ -13,7 +14,7 @@ const getPagination = (page, size) => {
     return { limit, offset };
 };
 
-// 2. Costruisce le Relazioni (Include) e gestisce il filtro TAG
+//2. Costruisce le Relazioni  e gestisce il filtro TAG
 const getIncludeOptions = (tagFilter) => {
     // Relazioni base sempre presenti
     let options = [
@@ -54,8 +55,8 @@ const getOrderClause = (sortOption) => {
     }
 };
 
-// --- METODO PRINCIPALE (Controller) ---
 
+// Visualizzo meme
 exports.getAllMemes = async (req, res) => {
     try {
         const { page = 1, tag, sort, user } = req.query;
@@ -69,7 +70,7 @@ exports.getAllMemes = async (req, res) => {
         let whereCondition = {};
         if (user) whereCondition.UserId = user;
 
-        // C. Esecuzione Query (Pulita e leggibile!)
+        // C. Esecuzione Query 
         const { count, rows } = await Meme.findAndCountAll({
             where: whereCondition,
             include: includeOptions,

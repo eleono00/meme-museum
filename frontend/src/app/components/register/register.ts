@@ -37,7 +37,7 @@ export class RegisterComponent {
       },
       error: (err) => {
         console.error(" [UI REGISTER] Errore ricevuto:", err);
-        this.errorMessage = "Errore durante la registrazione. Vedi console.";
+        this.errorMessage = "Errore durante la registrazione. Controlla email.";
       }
     });
   }

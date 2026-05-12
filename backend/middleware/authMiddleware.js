@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = 'segreto_super_sicuro'; // da nascondere nel caso in cui lo rendessimo pubblico
+const JWT_SECRET = 'segreto_super_sicuro'; 
 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];

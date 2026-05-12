@@ -17,19 +17,22 @@ export class LoginComponent {
 
   // Iniettiamo il Router nel costruttore
   constructor(private authService: AuthService, private router: Router) {}
-
+// controlliamo che ci siano tutti i campi compilati
   onLogin() {
     console.log("Tentativo di login...");
-    
+    // controlliamo che ci siano tutti i campi compilati
+    if (!this.email || !this.password) {
+      console.warn("[UI Login] Campi mancanti");
+      this.errorMessage = "Compila tutti i campi!";
+      return;
+    }
+
     const credentials = { email: this.email, password: this.password };
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
         console.log("Login riuscito! Risposta:", response);
-        
-        // 👇 QUESTA È LA RIGA CHE TI MANCAVA!
-        // Dice: "Adesso spostati alla pagina principale (Home)"
-        this.router.navigate(['/']); 
+         this.router.navigate(['/']); 
       },
       error: (err) => {
         console.error("Errore login:", err);
