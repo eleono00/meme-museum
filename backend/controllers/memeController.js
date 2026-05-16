@@ -6,17 +6,17 @@ const Comment = require('../models/Comment');
 const Like = require('../models/Like');
 const Dislike = require('../models/Dislike');
 
-// Funzioni a supporto delle QUERY
-// 1. Calcola Paginazione
+
+// Calcolo Paginazione
 const getPagination = (page, size) => {
     const limit = size ? +size : 10; // Default 10
     const offset = (page ? page - 1 : 0) * limit;
     return { limit, offset };
 };
 
-//2. Costruisce le Relazioni  e gestisce il filtro TAG
+// Funzione implementata per capire quali relazioni "joinare" alla query dei meme
 const getIncludeOptions = (tagFilter) => {
-    // Relazioni base sempre presenti
+    // Informazioni bas da portarmi dietro
     let options = [
         { model: User, attributes: ['username', 'id'] },
         { model: Comment, include: [{ model: User, attributes: ['username'] }] },
@@ -24,7 +24,7 @@ const getIncludeOptions = (tagFilter) => {
         { model: Dislike } 
     ];
 
-    // Logica specifica per i Tag
+    // Se l'utente ha cercato un tag specifico filtro i meme per quel tag
     if (tagFilter) {
         options.push({
             model: Tag,
@@ -41,36 +41,36 @@ const getIncludeOptions = (tagFilter) => {
     return options;
 };
 
-// 3. Determina l'Ordinamento
+
+// Funzione per gestire i vari ordinamenti richiesti dall'utente
 const getOrderClause = (sortOption) => {
     switch (sortOption) {
         case 'oldest':
             return [['createdAt', 'ASC']];
-        case 'likes': // Dal più votato
+        case 'likes': 
             return [[Sequelize.literal('score'), 'DESC']];
-        case 'least_likes': // Dal meno votato
+        case 'least_likes': 
             return [[Sequelize.literal('score'), 'ASC']];
-        default: // 'newest'
+        default: 
             return [['createdAt', 'DESC']];
     }
 };
 
 
-// Visualizzo meme
 exports.getAllMemes = async (req, res) => {
     try {
         const { page = 1, tag, sort, user } = req.query;
         
-        // A. Usiamo gli Helper per costruire la query
+        // Uso le funzioni precedenti per costruire la query
         const { limit, offset } = getPagination(page, 10);
         const includeOptions = getIncludeOptions(tag);
         const orderClause = getOrderClause(sort);
         
-        // B. Costruiamo la condizione WHERE base
+        // se mi hano passato l'id di un utente visuizzo solo i sui meme
         let whereCondition = {};
         if (user) whereCondition.UserId = user;
 
-        // C. Esecuzione Query 
+        // Eseguo la quary
         const { count, rows } = await Meme.findAndCountAll({
             where: whereCondition,
             include: includeOptions,
@@ -107,7 +107,6 @@ exports.getAllMemes = async (req, res) => {
 };
 
 
-// 2. Logica per il 'Meme del Giorno'
 exports.getMemeOfTheDay = async (req, res) => {
     try {
         const count = await Meme.count();
@@ -133,13 +132,12 @@ exports.getMemeOfTheDay = async (req, res) => {
     }
 };
 
-// 3. Creazione di un nuovo Meme
 exports.createMeme = async (req, res) => {
     try {
         const { title, tags } = req.body;
         let imagePath = null;
         
-        // Normalizzazione path immagine per compatibilità Windows/Linux
+        // Normalizzazione path immagine per compatibilità Ubuntu
         if (req.file) {
             imagePath = req.file.path.replace(/\\/g, "/"); 
         }
@@ -150,7 +148,7 @@ exports.createMeme = async (req, res) => {
             UserId: req.user.id // ID estratto dal Token JWT
         });
 
-        // Gestione Tag (creazione o associazione se esistenti)
+        // Gestione Tag 
         if (tags) {
             const tagList = tags.split(',')
                                 .map(t => t.trim())
@@ -170,7 +168,6 @@ exports.createMeme = async (req, res) => {
     }
 };
 
-// 4. Eliminazione Meme (con controllo permessi)
 exports.deleteMeme = async (req, res) => {
     try {
         const memeId = req.params.id;
@@ -185,7 +182,7 @@ exports.deleteMeme = async (req, res) => {
             return res.status(403).json({ message: "Azione non autorizzata." });
         }
 
-        // Pulizia relazioni e rimozione
+        // Pulizia , grazie a cascade nel DB, cancellando il meme si elimineranno anche commenti e like associati
         await meme.destroy();
         
         res.status(200).json({ message: "Meme eliminato con successo." });
@@ -195,20 +192,21 @@ exports.deleteMeme = async (req, res) => {
     }
 };
 
-// 5. Gestione Like (Toggle)
+
 exports.toggleLike = async (req, res) => {
     try {
         const memeId = req.params.id;
         const userId = req.user.id;
 
+        // Controllo se questo utente ha già messo like a questo meme
         const existingLike = await Like.findOne({ where: { MemeId: memeId, UserId: userId } });
 
         if (existingLike) {
-            // Se esiste già, lo rimuove (Toggle OFF)
+            // Se esiste già, lo rimuove 
             await existingLike.destroy();
             res.status(200).json({ status: 'unliked' });
         } else {
-            // Se non esiste, rimuove eventuali Dislike e aggiunge Like (Toggle ON)
+            // Se non esiste, rimuove eventuali Dislike e aggiunge Like 
             await Dislike.destroy({ where: { MemeId: memeId, UserId: userId } });
             await Like.create({ MemeId: memeId, UserId: userId });
             res.status(201).json({ status: 'liked' });
@@ -219,7 +217,6 @@ exports.toggleLike = async (req, res) => {
     }
 };
 
-// 6. Gestione Dislike (Toggle)
 exports.toggleDislike = async (req, res) => {
     try {
         const memeId = req.params.id;
@@ -241,7 +238,6 @@ exports.toggleDislike = async (req, res) => {
     }
 };
 
-// 7. Aggiunta Commento
 exports.addComment = async (req, res) => {
     try {
         const comment = await Comment.create({

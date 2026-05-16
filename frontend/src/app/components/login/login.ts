@@ -19,7 +19,7 @@ export class LoginComponent {
   constructor(private authService: AuthService, private router: Router) {}
 // controlliamo che ci siano tutti i campi compilati
   onLogin() {
-    console.log("Tentativo di login...");
+
     // controlliamo che ci siano tutti i campi compilati
     if (!this.email || !this.password) {
       console.warn("[UI Login] Campi mancanti");
@@ -28,7 +28,8 @@ export class LoginComponent {
     }
 
     const credentials = { email: this.email, password: this.password };
-
+    
+    // Chiamo il servizio passandogli le credenziali inserite dall'utente
     this.authService.login(credentials).subscribe({
       next: (response) => {
         console.log("Login riuscito! Risposta:", response);

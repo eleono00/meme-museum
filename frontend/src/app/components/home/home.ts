@@ -5,6 +5,7 @@ import { MemeService } from '../../services/meme';
 import { AuthService } from '../../services/auth';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-home',
@@ -19,12 +20,14 @@ export class HomeComponent implements OnInit {
   
   isLoadingMemeOfDay: boolean = true;
   memeOfDayError: boolean = false;
-  
+
+  // Parametri per la paginazione e i filtri richiesti dalla traccia
   currentPage: number = 1;
   totalPages: number = 1;
   currentTag: string = '';
   currentSort: string = 'newest';
   
+  // Informazioni di sessione dell'utente
   isLoggedIn: boolean = false;
   currentUserId: number | null = null;
   
@@ -36,15 +39,18 @@ export class HomeComponent implements OnInit {
   
   isUploading: boolean = false;
 
+  // Stream reattivo RxJS usato per controllare la barra di ricerca senza intasare il server
   searchSubject: Subject<string> = new Subject<string>();
 
   constructor(
     private memeService: MemeService, 
     public authService: AuthService,
-    private cd: ChangeDetectorRef 
+    private cd: ChangeDetectorRef,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit() {
+    // Controllo lo stato della sessione all'avvio della pagina
     this.isLoggedIn = this.authService.isLoggedIn();
     const user = this.authService.getCurrentUser();
     if (user) this.currentUserId = user.id;
@@ -52,6 +58,7 @@ export class HomeComponent implements OnInit {
     this.loadMemes();
     this.loadMemeOfTheDay();
 
+    // Configuro la barra di ricerca reattiva
     this.searchSubject.pipe(
       debounceTime(400),
       distinctUntilChanged()
@@ -102,6 +109,7 @@ export class HomeComponent implements OnInit {
   onTagKeydown(event: KeyboardEvent) {
     if (event.key === ' ' || event.key === 'Enter') {
       event.preventDefault();
+      // Premendo spazio o invio inserisce il tag nell'array dei chip grafici
       const tag = this.currentTagInput.trim().replace(/^#+/, '');
       if (tag && !this.tagsArray.includes(tag)) this.tagsArray.push(tag);
       this.currentTagInput = '';
@@ -111,7 +119,7 @@ export class HomeComponent implements OnInit {
   removeTag(index: number) { this.tagsArray.splice(index, 1); }
 
   uploadMeme() {
-    if (!this.newMemeTitle || !this.selectedFile) { alert("Titolo e immagine sono obbligatori!"); return; }
+    if (!this.newMemeTitle || !this.selectedFile) { this.toastr.error("Errore durante la pubblicazione.", "Ops!"); return; }
     
     this.isUploading = true; 
     const tagsString = this.tagsArray.join(',');
@@ -127,7 +135,7 @@ export class HomeComponent implements OnInit {
       },
       error: (err) => { 
         this.isUploading = false; 
-        alert("Errore durante la pubblicazione."); 
+        this.toastr.error("Errore durante la pubblicazione.", "Ops!"); 
       }
     });
   }
@@ -136,9 +144,8 @@ export class HomeComponent implements OnInit {
     if(confirm('Vuoi eliminare questo meme?')) this.memeService.deleteMeme(id).subscribe(() => this.loadMemes());
   }
 
-  // --- LOGICA OPTIMISTIC UI PULITA ---
 
-  // Funzione helper per aggiornare un oggetto meme in sicurezza
+// Funzione di supporto per simulare l'aggiunta o rimozione immediata del Like
   private updateLocalLikeState(target: any) {
     if (!target) return;
     if (!target.Likes) target.Likes = [];
@@ -150,6 +157,7 @@ export class HomeComponent implements OnInit {
       target.Likes = target.Likes.filter((l: any) => l.UserId !== this.currentUserId);
     } else {
       target.Likes.push({ UserId: this.currentUserId });
+      // Se c'era un dislike dell'utente corrente, lo rimuovo per logica toggle coerente con il backend
       target.Dislikes = target.Dislikes.filter((d: any) => d.UserId !== this.currentUserId);
     }
   }
@@ -170,29 +178,27 @@ export class HomeComponent implements OnInit {
   }
 
   toggleLike(id: number) {
-    if (!this.isLoggedIn) { alert("Devi accedere per mettere Like!"); return; }
+    if (!this.isLoggedIn) { this.toastr.info("Devi accedere per mettere Like ai meme.", "Ops!"); return; }
 
     const memeInGrid = this.memes.find(m => m.id === id);
     
-    // 1. Aggiorniamo il meme nella griglia (se presente).
-    // NOTA BENE: Essendo un riferimento, questo aggiorna AUTOMATICAMENTE anche `selectedMeme` nella modale!
+    // Aggiorno istantaneamente il meme nella griglia
     if (memeInGrid) {
       this.updateLocalLikeState(memeInGrid);
     }
 
-    // 2. Aggiorniamo il Meme del Giorno SOLO se non è lo stesso identico oggetto in memoria
     if (this.memeOfTheDay && this.memeOfTheDay.id === id && this.memeOfTheDay !== memeInGrid) {
       this.updateLocalLikeState(this.memeOfTheDay);
     }
 
-    // 3. Chiamata al backend
+    // Chiamata al backend
     this.memeService.toggleLike(id).subscribe({
-      error: () => this.loadMemes() // In caso di errore server, ripristina i dati reali
+      error: () => this.loadMemes() // In caso di errore server, ripristino i dati reali
     });
   }
 
   toggleDislike(id: number) {
-    if (!this.isLoggedIn) { alert("Devi accedere per mettere Dislike!"); return; }
+    if (!this.isLoggedIn) { this.toastr.info("Devi accedere per mettere Dislike ai meme.", "Ops!"); return; }
 
     const memeInGrid = this.memes.find(m => m.id === id);
     
@@ -209,6 +215,7 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  // Metodi ponte per gestire i bottoni veloci sulla sezione speciale "Meme del Giorno"
   likeMemeOfTheDay() {
     if (this.memeOfTheDay) this.toggleLike(this.memeOfTheDay.id);
   }
@@ -218,13 +225,15 @@ export class HomeComponent implements OnInit {
   }
 
   addComment(id: number, text: string) {
-    if (!this.isLoggedIn) { alert("Devi accedere per commentare!"); return; }
+    if (!this.isLoggedIn) { this.toastr.info("Devi accedere per commetare i meme.", "Ops!"); return; }
     if(text.trim()) this.memeService.addComment(id, text).subscribe(() => this.loadMemes());
   }
 
+  // Gestione del cambio pagina della paginazione richiesta dalla traccia
   nextPage() { if (this.currentPage < this.totalPages) { this.currentPage++; this.loadMemes(); } }
   prevPage() { if (this.currentPage > 1) { this.currentPage--; this.loadMemes(); } }
 
+  // Metodi booleani di controllo usati nell'HTML per accendere o spegnere la classe CSS dei bottoni 
   isLiked(meme: any): boolean {
     if (!meme || !meme.Likes || !this.currentUserId) return false;
     return meme.Likes.some((like: any) => like.UserId === this.currentUserId);

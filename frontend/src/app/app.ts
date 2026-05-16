@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { AuthService } from './services/auth'; // Controlla il percorso!
+import { AuthService } from './services/auth'; 
 
 @Component({
   selector: 'app-root',
-  //nuova architettura Angular senza moduli
+  //nuova architettura Angular senza moduli, ci dice che è  autonomo
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './app.html',
@@ -14,7 +14,7 @@ import { AuthService } from './services/auth'; // Controlla il percorso!
 export class AppComponent {
   title = 'meme-museum';
 
-  // "public" serve per far leggere la variabile all'HTML
+  // dichiaro AuthService public  per far leggere le variabile 
   constructor(public authService: AuthService, private router: Router) {}
 
   logout() {

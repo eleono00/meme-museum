@@ -3,11 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 
+//il nostro servizio e un singleton
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   // Porta 3001 (quella del backend attivo)
+//  Definisce l'indirizzo del server backend. È private perché nessun altro file deve poterla cambiare.
   private apiUrl = 'http://localhost:3001/api/auth';
 
   constructor(private http: HttpClient, private router: Router) { }
@@ -39,7 +41,7 @@ export class AuthService {
     return !!localStorage.getItem('token');
   }
 
-  //mi restituisce lo user loggato
+  //faccio in modo che mi restituisca lo user loggato
   getCurrentUser(): any {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;

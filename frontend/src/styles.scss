@@ -1,11 +1,14 @@
-// TEMA: BRUTALIST 
+// TEMA GRAFICO: NEO-BRUTALISM
+@import 'ngx-toastr/toastr';
 
 :root {
-  --bs-body-bg: #f4f4f0; 
-  --bs-body-color: #111111; 
-  --museum-orange: #ff5722; 
-  --museum-card-bg: #ffffff; 
+  // Sovrascrivo le variabili base di Bootstrap per definire i miei colori
+  --bs-body-bg: #f4f4f0;      // Sfondo 
+  --bs-body-color: #111111;  
+  --museum-orange: #ff5722;   // Colore d'accento: un arancione molto acceso e pop
+  --museum-card-bg: #ffffff;  // Sfondo delle schede
   
+  // Definisco delle linee spesse e ombre piatte senza sfocatura
   --brutal-border: 3px solid #111111;
   --brutal-shadow: 6px 6px 0px #111111;
   --brutal-shadow-hover: 2px 2px 0px #111111;
@@ -15,14 +18,16 @@ body {
   background-color: var(--bs-body-bg); 
   color: var(--bs-body-color); 
   font-family: 'Segoe UI', Helvetica, sans-serif;
+  // Sfondo geometrico a micropunti per spezzare la monotonia della pagina
   background-image: radial-gradient(#d5d5d0 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
-/* NAVBAR E MENU */
+
+/*  NAVBAR E MENU  */
 .navbar {
     background-color: var(--bs-body-bg) !important; 
-    border-bottom: var(--brutal-border); 
+    border-bottom: var(--brutal-border); // Sostituisco la sfocatura standard con una linea netta
     padding-top: 1rem !important;
     padding-bottom: 1rem !important;
 }
@@ -39,12 +44,14 @@ body {
 .navbar-brand i { font-size: 2rem; color: var(--museum-orange); }
 .nav-link { font-size: 1.2rem !important; font-weight: 700 !important; color: #111111 !important; text-transform: uppercase; }
 
-/* BOTTONI */
+
+/*  BOTTONI REATTIVI  */
 .btn-elegant-orange, .btn-outline-orange { 
   background-color: var(--museum-orange); color: #111111 !important; font-weight: 900; 
   border: var(--brutal-border) !important; border-radius: 0px !important; box-shadow: var(--brutal-shadow); 
   transition: all 0.15s ease; text-transform: uppercase; letter-spacing: 1px;
 }
+// Effetto click: il bottone si sposta fisicamente verso l'ombra quando ci passo sopra
 .btn-elegant-orange:hover, .btn-outline-orange:hover { 
   background-color: #ff7043; transform: translate(4px, 4px); box-shadow: var(--brutal-shadow-hover); color: #111111 !important; 
 }
@@ -53,44 +60,62 @@ body {
 .btn-action { color: #111111; transition: transform 0.2s; }
 .btn-action:hover { color: var(--museum-orange); transform: scale(1.1); }
 
-/* CARD DEI MEME */
-.museum-card { background-color: var(--museum-card-bg); border-radius: 0px !important; border: var(--brutal-border); box-shadow: var(--brutal-shadow); overflow: hidden; transition: all 0.2s ease; }
-.museum-card:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0px var(--museum-orange); }
-.meme-image-container { height: 260px; background-color: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border-bottom: var(--brutal-border); }
 
-/* PILLOLE DEI TAG */
-.tag-pill { background-color: #fff; color: #111111; border: 2px solid #111111; border-radius: 0px; padding: 4px 10px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 2px 2px 0px #111111; }
+/*  CARD DEI MEME  */
+.museum-card { 
+  background-color: var(--museum-card-bg); border-radius: 0px !important; 
+  border: var(--brutal-border); box-shadow: var(--brutal-shadow); 
+  overflow: hidden; transition: all 0.2s ease; 
+}
+.museum-card:hover { 
+  transform: translate(-2px, -2px); box-shadow: 8px 8px 0px var(--museum-orange); // L'ombra diventa arancione al passaggio del mouse
+}
+.meme-image-container { 
+  height: 260px; background-color: #fff; display: flex; 
+  align-items: center; justify-content: center; overflow: hidden; 
+  position: relative; border-bottom: var(--brutal-border); 
+}
+
+
+/*  CHIP E PILLOLE DEI TAG  */
+.tag-pill { 
+  background-color: #fff; color: #111111; border: 2px solid #111111; 
+  border-radius: 0px; padding: 4px 10px; font-size: 0.8rem; font-weight: bold; 
+  cursor: pointer; transition: all 0.2s; box-shadow: 2px 2px 0px #111111; 
+}
 .tag-pill:hover { background-color: var(--museum-orange); transform: translate(1px, 1px); box-shadow: 1px 1px 0px #111111; }
 
 .text-white { color: #111111 !important; } 
 h4, h5 { font-weight: 900 !important; }
 
-/* INPUT, SELECT E UPLOAD FILE */
+
+/*  INPUT FIELDS E COMPONENTI DI FORM  */
 .form-control-dark { background-color: #ffffff !important; border: var(--brutal-border) !important; color: #111111 !important; border-radius: 0px !important; font-weight: bold; }
 .form-control-dark:focus { border-color: var(--museum-orange) !important; box-shadow: 4px 4px 0px var(--museum-orange) !important; outline: none; }
 .form-control-dark::placeholder { color: #888888 !important; }
 select.form-select { border: var(--brutal-border) !important; border-radius: 0px !important; font-weight: bold; background-color: #ffffff; box-shadow: 4px 4px 0px #dddddd; }
 select.form-select:focus { border-color: var(--museum-orange) !important; box-shadow: 4px 4px 0px var(--museum-orange) !important; outline: none; }
-input[type="file"].form-control-dark::file-selector-button { background-color: var(--museum-orange); color: #111111; border: none; border-right: var(--brutal-border); padding: 0.375rem 1rem; margin-right: 1rem; cursor: pointer; font-weight: 900; text-transform: uppercase; transition: 0.2s; }
+
+input[type="file"].form-control-dark::file-selector-button { 
+  background-color: var(--museum-orange); color: #111111; border: none; 
+  border-right: var(--brutal-border); padding: 0.375rem 1rem; margin-right: 1rem; 
+  cursor: pointer; font-weight: 900; text-transform: uppercase; transition: 0.2s; 
+}
 input[type="file"].form-control-dark::file-selector-button:hover { background-color: #ff7043; }
 
-/* FINESTRE MODALI */
+
+/*  FINESTRE MODALI */
 .modal-content { background-color: var(--bs-body-bg); color: #111111; border: var(--brutal-border); border-radius: 0; box-shadow: 10px 10px 0px rgba(0,0,0,1); }
 .modal-header, .modal-footer { border-color: #111111 !important; }
 .modal-orange-theme .modal-content { border-color: var(--museum-orange) !important; box-shadow: 12px 12px 0px var(--museum-orange) !important; }
 .modal-orange-theme .modal-header { background-color: var(--museum-orange) !important; border-bottom: 3px solid #111111 !important; color: #111111 !important; }
 .modal-orange-theme .modal-title, .modal-orange-theme .btn-close { color: #111111 !important; filter: none !important; }
 
-
-/* ==========================================
-   CLASSI UTILITY BRUTALISTE (Pulizia HTML)
-   ========================================== */
-
 /* Layout & Spaziature */
 .page-container-brutal { margin-top: 130px; margin-bottom: 50px; }
 .main-content-margin { margin-top: 110px; }
 
-/* Contenitori e Modali */
+/* Contenitori e Sezioni Interne delle Modali */
 .brutal-box-large { background-color: var(--museum-card-bg); border: var(--brutal-border); box-shadow: 10px 10px 0px #111111; }
 .modal-body-hero { min-height: 300px; }
 .modal-body-brutal { background-color: var(--bs-body-bg); border-bottom: var(--brutal-border); }
@@ -98,17 +123,17 @@ input[type="file"].form-control-dark::file-selector-button:hover { background-co
 .comments-area-brutal { max-height: 250px; overflow-y: auto; background-color: #f8f8f8; }
 .comments-input-brutal { background-color: var(--bs-body-bg); border-top: var(--brutal-border); }
 
-/* Ricerca */
+/* Gruppo di Ricerca (Searchbar) */
 .brutal-search-group { border: var(--brutal-border); box-shadow: var(--brutal-shadow); background-color: #ffffff; border-radius: 0; }
 .brutal-search-border-right { border-right: var(--brutal-border) !important; }
 .brutal-search-border-left { border-left: var(--brutal-border) !important; }
 
-/* Avatar / Utente */
+/* Cerchi Avatar Utente */
 .avatar-small { width: 34px; height: 34px; border: 2px solid #111111; background-color: var(--museum-orange); color: #111111; font-size: 0.95rem; }
 .avatar-medium { width: 40px; height: 40px; border: 2px solid #111111; background-color: var(--museum-orange); color: #111111; }
 .avatar-large { width: 100px; height: 100px; font-size: 3rem; background-color: var(--museum-orange); color: #111111; border: 4px solid #111111; box-shadow: 6px 6px 0px #111111; font-weight: 900; }
 
-/* Testi e Colori Aggiuntivi */
+/* Testi, Link e Interazioni */
 .text-brutal-dark { color: #111111 !important; }
 .text-brutal-orange { color: var(--museum-orange) !important; }
 .text-brutal-gray { color: #555555 !important; }

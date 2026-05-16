@@ -31,7 +31,6 @@ app.use((req, res, next) => {
 // Configurazione cartella statica per le immagini
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// --- Definizione Associazioni Database ---
 
 // Relazioni Utente - Meme
 User.hasMany(Meme, { onDelete: 'CASCADE' });
@@ -43,7 +42,7 @@ Comment.belongsTo(User);
 Meme.hasMany(Comment, { onDelete: 'CASCADE' });
 Comment.belongsTo(Meme);
 
-// Relazioni Tag (Molti a Molti)
+// Relazioni Tag
 Meme.belongsToMany(Tag, { through: 'MemeTags', onDelete: 'CASCADE' });
 Tag.belongsToMany(Meme, { through: 'MemeTags', onDelete: 'CASCADE' });
 
@@ -59,7 +58,7 @@ Dislike.belongsTo(User);
 Meme.hasMany(Dislike, { onDelete: 'CASCADE' });
 Dislike.belongsTo(Meme);
 
-// Registrazione rotte API
+// Imposto gli url per le API
 app.use('/api/auth', authRoutes);
 app.use('/api/memes', memeRoutes);
 

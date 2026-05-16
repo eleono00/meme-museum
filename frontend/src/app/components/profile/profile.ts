@@ -82,7 +82,6 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  // --- LOGICA OPTIMISTIC UI PULITA ---
 
   private updateLocalLikeState(target: any) {
     if (!target || !this.currentUserId) return;
@@ -122,7 +121,7 @@ export class ProfileComponent implements OnInit {
       this.updateLocalLikeState(memeInGrid);
     }
 
-    // Chiamata silenziosa al backend
+    // Chiamata  al backend
     this.memeService.toggleLike(id).subscribe({
       error: () => this.loadMyMemes() // In caso di errore server, ripristina i dati reali
     });

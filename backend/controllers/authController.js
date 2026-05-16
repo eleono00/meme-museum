@@ -2,11 +2,12 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Chiave segreta da nascondere
+// Chiave segreta per firmare il token
 const JWT_SECRET = 'segreto_super_sicuro'; 
 
 exports.register = async (req, res) => {
     try {
+        //dati frontend
         const { username, email, password } = req.body;
         
         // Verifico se l'utente esiste già
@@ -25,7 +26,6 @@ exports.register = async (req, res) => {
             password: hashedPassword 
         });
 
-        // Restituisce 201 (Created)
         res.status(201).json({ message: "Utente registrato con successo." });
 
     } catch (error) {
@@ -44,13 +44,13 @@ exports.login = async (req, res) => {
             return res.status(404).json({ message: "Utente non trovato." });
         }
 
-        // Confronto la password inserita con l'hash nel DB
+        // Se l'utente esiste, confronto la password inserita con l'hash presente nel db
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) {
             return res.status(401).json({ message: "Credenziali non valide." });
         }
 
-        // Genero il Token JWT
+        // Se le credenziali sono giuste, genero il Token JWT
         const token = jwt.sign(
             { id: user.id, email: user.email }, 
             JWT_SECRET,                         

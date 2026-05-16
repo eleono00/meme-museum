@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Meme } from '../models/meme'; 
 
 @Injectable({
   providedIn: 'root'
@@ -10,48 +11,35 @@ export class MemeService {
 
   constructor(private http: HttpClient) { }
 
-  getMemes(page: number = 1, tag: string = '', sort: string = 'newest', userId: number | null = null): Observable<any> {
+  getMemes(page: number = 1, tag: string = '', sort: string = 'newest', userId: number | null = null): Observable<Meme[]> {
     let url = `${this.apiUrl}?page=${page}&sort=${sort}`;
-    
     if (tag) url += `&tag=${tag}`;
     if (userId) url += `&user=${userId}`; 
-    
-    return this.http.get(url);
+    return this.http.get<Meme[]>(url);
   }
 
-  getMemeOfTheDay(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/day`);
+  getMemeOfTheDay(): Observable<Meme> {
+    return this.http.get<Meme>(`${this.apiUrl}/day`);
   }
 
   createMeme(formData: FormData): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.post(this.apiUrl, formData, { headers });
+    return this.http.post(this.apiUrl, formData);
   }
 
   deleteMeme(id: number): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.delete(`${this.apiUrl}/${id}`, { headers });
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 
   toggleLike(id: number): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.post(`${this.apiUrl}/${id}/like`, {}, { headers });
+    return this.http.post(`${this.apiUrl}/${id}/like`, {});
   }
 
-  // 👇 NUOVA FUNZIONE AGGIUNTA PER IL DISLIKE!
   toggleDislike(id: number): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.post(`${this.apiUrl}/${id}/dislike`, {}, { headers });
+    return this.http.post(`${this.apiUrl}/${id}/dislike`, {});
   }
 
   addComment(id: number, text: string): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.post(`${this.apiUrl}/${id}/comments`, { text }, { headers });
+    return this.http.post(`${this.apiUrl}/${id}/comments`, { text });
   }
 
   uploadMeme(title: string, image: File, tags: string): Observable<any> {
@@ -61,12 +49,6 @@ export class MemeService {
     if (tags) {
       formData.append('tags', tags);
     }
-    
-    const token = localStorage.getItem('token'); 
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    return this.http.post(this.apiUrl, formData, { headers: headers });
+    return this.http.post(this.apiUrl, formData);
   }
 }

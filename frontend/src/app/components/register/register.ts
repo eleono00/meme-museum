@@ -19,7 +19,6 @@ export class RegisterComponent {
   constructor(private authService: AuthService, private router: Router) {}
 
   onRegister() {
-    console.log(" [UI REGISTER] Click pulsante Registrati");
     
     if (!this.username || !this.email || !this.password) {
       console.warn("[UI REGISTER] Campi mancanti");
@@ -32,11 +31,9 @@ export class RegisterComponent {
     this.authService.register(user).subscribe({
       next: () => {
         alert("Registrazione OK!");
-        console.log("🚀 [UI REGISTER] Reindirizzamento al Login...");
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        console.error(" [UI REGISTER] Errore ricevuto:", err);
         this.errorMessage = "Errore durante la registrazione. Controlla email.";
       }
     });
