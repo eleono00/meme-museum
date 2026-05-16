@@ -60,3 +60,6 @@ mememuseum.sqlite-journal
 uploads/
 backend/uploads/
 frontend/node_modules/
+
+frontend/.angular/
+frontend/.vscode/
